@@ -91,7 +91,7 @@ app.get('/image/:id', (req, res, next) => wrapperError({ req, res, next }, getIm
 
 const errCallback = (err, options) => {
   const { res, req } = options;
-  if (err) return res.status(404).json('Not Found')
+  if (err && err.length) return res.status(404).json('Not Found')
   
   res.status(200)
   res.json({ id: req.params.id })
@@ -137,7 +137,7 @@ const handleMerge = ({ req, res }) => {
   const { font, back, color } = req.query;
 
   const colorToReplace = (color && color.split(',').map((n) => parseInt(n, 10)));
-  
+
   const threshold = (req.query.threshold && parseInt(req.query.threshold, 10)) || 0;
 
   fs.access(getPathImage(font), (err) => { if (err) res.status(404).json('Not Found'); })
@@ -149,6 +149,8 @@ const handleMerge = ({ req, res }) => {
 
   replaceBackground(fontStream, backStream, colorToReplace  || [250, 0, 0] , threshold).then(
       (readableStream) => {
+        res.status(200);
+        res.setHeader('Content-type', 'image/jpeg');
         readableStream.pipe(res);
       }
   );
