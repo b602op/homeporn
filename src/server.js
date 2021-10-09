@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const { replaceBackground } = require('backrem');
 
 const PORT = 8080;
 
@@ -10,6 +11,7 @@ const app = express();
 const imagesPath = path.resolve(__dirname, 'images');
 
 const getPathImage = (id) => `${imagesPath}/${id}`;
+const getPathImage2 = (id) => `${imagesPath}\\${id}`;
 
 const getFileName = (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`);
 
@@ -48,15 +50,15 @@ app.get('/list', (req, res, next) => wrapperError({ req, res, next }, getImageLi
 //   return res.json(list);
 // });
 
-// app.get('/upload', (req, res) => {
-//     res.send(`
-//     <form enctype="multipart/form-data" action="/upload" method="POST">
-//         <input name="image" type="file" req />
-//         <button type="submit">
-//             Загрузите файл с картинкой
-//         </button>
-//     </form>`)
-// })
+app.get('/upload', (req, res) => {
+    res.send(`
+    <form enctype="multipart/form-data" action="/upload" method="POST">
+        <input name="image" type="file" req />
+        <button type="submit">
+            Загрузите файл с картинкой
+        </button>
+    </form>`)
+})
 
 // GET /image/:id  — скачать изображение с заданным id
 // app.get('/image/:id', async (req, res, next) => {
@@ -136,25 +138,21 @@ app.delete('/image/:id', (req, res, next) => wrapperError({ req, res, next }, de
 // });
 
 const handleMerge = ({ req, res, next }) => {
-  const { font, back, color = '250,0,0', threshold = 0 } = req.query;
+  const { front, back, color = '250,0,0', threshold = 0 } = req.query;
 
   const colorToReplace = color.split(',').map((n) => parseInt(n, 10));
 
   const thresholdInt = parseInt(threshold, 10);
 
-  fs.access(getPathImage(font), (err) => { if (err || !font) res.status(404).json('Not Found'); next(err) })
+  fs.access(getPathImage(front), (err) => { if (err) res.status(404).json('Not Found'); })
 
-  fs.access(getPathImage(back), (err) => { if (err || !back) res.status(404).json('Not Found'); next(err) })
+  fs.access(getPathImage(back), (err) => { if (err) res.status(404).json('Not Found'); })
 
-  const fontStream = fs.createReadStream(getPathImage(font));
-  const backStream = fs.createReadStream(getPathImage(back));
+  const frontStream = fs.createReadStream(getPathImage2(front));
+  const backStream = fs.createReadStream(getPathImage2(back));
 
-  replaceBackground(fontStream, backStream, colorToReplace , thresholdInt).then(
+  replaceBackground(frontStream, backStream, colorToReplace , thresholdInt).then(
       (readableStream) => {
-        res.status(200);
-        
-        res.setHeader('Content-Type', 'image/jpeg');
-
         readableStream.pipe(res);
       }
   );
