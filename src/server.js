@@ -151,6 +151,8 @@ const handleMerge = ({ req, res, next }) => {
   const frontStream = fs.createReadStream(getPathImage2(front));
   const backStream = fs.createReadStream(getPathImage2(back));
 
+  res.setHeader('Content-type', 'image/jpeg');
+
   replaceBackground(frontStream, backStream, colorToReplace , thresholdInt).then(
       (readableStream) => {
         readableStream.pipe(res);
