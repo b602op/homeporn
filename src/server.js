@@ -11,7 +11,6 @@ const app = express();
 const imagesPath = path.resolve(__dirname, 'images');
 
 const getPathImage = (id) => `${imagesPath}/${id}`;
-const getPathImage2 = (id) => `${imagesPath}\\${id}`;
 
 const getFileName = (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`);
 
@@ -148,8 +147,8 @@ const handleMerge = ({ req, res, next }) => {
 
   fs.access(getPathImage(back), (err) => { if (err) res.status(404).json('Not Found'); })
 
-  const frontStream = fs.createReadStream(getPathImage2(front));
-  const backStream = fs.createReadStream(getPathImage2(back));
+  const frontStream = fs.createReadStream(getPathImage(front));
+  const backStream = fs.createReadStream(getPathImage(back));
 
   res.setHeader('Content-type', 'image/jpeg');
 
