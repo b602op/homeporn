@@ -89,7 +89,15 @@ const getImage = ({ req, res }) => fs.access(getPathImage(req.params.id), (err) 
 
 app.get('/image/:id', (req, res, next) => wrapperError({ req, res, next }, getImage));
 
-const deleteImage = ({ req, res }) => fs.unlink(getPathImage(req.params.id), (err) => err ? res.status(404).json('Not Found') : res.status(200).json({ id: req.params.id }));
+const errCallback = (err, options) => {
+  const { res, req } = options;
+  if (err) return res.status(404).json('Not Found')
+  
+  res.status(200)
+  res.json({ id: req.params.id })
+}
+
+const deleteImage = ({ req, res }) => fs.unlink(getPathImage(req.params.id), (err) => errCallback(err, { res, req }));
 
 app.delete('/delete/:id', (req, res, next) => wrapperError({ req, res, next }, deleteImage))
 
@@ -124,6 +132,29 @@ app.delete('/delete/:id', (req, res, next) => wrapperError({ req, res, next }, d
 //     }
 //   );
 // });
+
+const handleMerge = ({ req, res }) => {
+  const { font, back, color } = req.query;
+
+  const colorToReplace = (color && color.split(',').map((n) => parseInt(n, 10)));
+  
+  const threshold = (req.query.threshold && parseInt(req.query.threshold, 10)) || 0;
+
+  fs.access(getPathImage(font), (err) => { if (err) res.status(404).json('Not Found'); })
+
+  fs.access(getPathImage(back), (err) => { if (err) res.status(404).json('Not Found'); })
+
+  const fontStream = fs.createReadStream(getPathImage(font));
+  const backStream = fs.createReadStream(getPathImage(back));
+
+  replaceBackground(fontStream, backStream, colorToReplace  || [250, 0, 0] , threshold).then(
+      (readableStream) => {
+        readableStream.pipe(res);
+      }
+  );
+}
+
+app.get('/merge', (req, res, next) => wrapperError({ req, res, next }, handleMerge))
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
