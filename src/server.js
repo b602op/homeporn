@@ -135,25 +135,26 @@ app.delete('/image/:id', (req, res, next) => wrapperError({ req, res, next }, de
 //   );
 // });
 
-const handleMerge = ({ req, res }) => {
-  const { font, back, color } = req.query;
+const handleMerge = ({ req, res, next }) => {
+  const { font, back, color = '250,0,0', threshold = 0 } = req.query;
 
-  const colorToReplace = (color && color.split(',').map((n) => parseInt(n, 10)));
+  const colorToReplace = color.split(',').map((n) => parseInt(n, 10));
 
-  const threshold = (req.query.threshold && parseInt(req.query.threshold, 10)) || 0;
+  const thresholdInt = parseInt(threshold, 10);
 
-  fs.access(getPathImage(font), (err) => { if (err) res.status(404).json('Not Found'); })
+  fs.access(getPathImage(font), (err) => { if (err || !font) res.status(404).json('Not Found'); next(err) })
 
-  fs.access(getPathImage(back), (err) => { if (err) res.status(404).json('Not Found'); })
+  fs.access(getPathImage(back), (err) => { if (err || !back) res.status(404).json('Not Found'); next(err) })
 
   const fontStream = fs.createReadStream(getPathImage(font));
   const backStream = fs.createReadStream(getPathImage(back));
 
-  res.status(200);
-  res.setHeader('Content-Type', 'image/jpeg');
-
-  replaceBackground(fontStream, backStream, colorToReplace  || [250, 0, 0] , threshold).then(
+  replaceBackground(fontStream, backStream, colorToReplace , thresholdInt).then(
       (readableStream) => {
+        res.status(200);
+        
+        res.setHeader('Content-Type', 'image/jpeg');
+
         readableStream.pipe(res);
       }
   );
