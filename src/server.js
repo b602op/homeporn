@@ -99,7 +99,9 @@ const errCallback = (err, options) => {
 
 const deleteImage = ({ req, res }) => fs.unlink(getPathImage(req.params.id), (err) => errCallback(err, { res, req }));
 
-app.delete('/delete/:id', (req, res, next) => wrapperError({ req, res, next }, deleteImage))
+// ❌ Scene 1 should delete images on DELETE /image/:id
+
+app.delete('/image/:id', (req, res, next) => wrapperError({ req, res, next }, deleteImage))
 
 // GET /merge?front=<id>&back=<id>&color=145,54,32&threshold=5  — замена фона у изображения
 // app.get('/merge', (req, res, next) => {
