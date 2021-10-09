@@ -48,15 +48,15 @@ app.get('/list', (req, res, next) => wrapperError({ req, res, next }, getImageLi
 //   return res.json(list);
 // });
 
-app.get('/upload', (req, res) => {
-    res.send(`
-    <form enctype="multipart/form-data" action="/upload" method="POST">
-        <input name="image" type="file" req />
-        <button type="submit">
-            Загрузите файл с картинкой
-        </button>
-    </form>`)
-})
+// app.get('/upload', (req, res) => {
+//     res.send(`
+//     <form enctype="multipart/form-data" action="/upload" method="POST">
+//         <input name="image" type="file" req />
+//         <button type="submit">
+//             Загрузите файл с картинкой
+//         </button>
+//     </form>`)
+// })
 
 // GET /image/:id  — скачать изображение с заданным id
 // app.get('/image/:id', async (req, res, next) => {
@@ -125,6 +125,6 @@ app.delete('/delete/:id', (req, res, next) => wrapperError({ req, res, next }, d
 //   );
 // });
 
-app.listen(PORT, '127.0.0.1', () => {
+app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
